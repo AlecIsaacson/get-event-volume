@@ -27,6 +27,6 @@ As an example, this will pull the number of bytes consumed by every event type i
 
 `./get-event-volume -apikey *yourAPIKey* -accountId *yourAccountID`
 
-This example will pull hte number of bytes consumed by every event type in an account since 12 hours ago, except for the events specified in the filter file.
+This example will pull the number of bytes consumed by every event type in an account since 12 hours ago, except for the events specified in the filter file.
 
 `./get-event-volume -apikey *yourAPIKey* -accountId *yourAccountID -since 12 -filter skipEvents.txt`
