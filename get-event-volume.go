@@ -75,7 +75,7 @@ func main() {
   nrAccount := flag.Int("accountId", 0, "New Relic account ID")
   nrEvents := flag.String("filter", "", "The file that contains events not to be processed")
 	logVerbose := flag.Bool("verbose", false, "Writes verbose logs for debugging")
-  timeframe := flag.String("timeframe", "1", "Number of hours to get data for")
+  timeframe := flag.String("since", "1", "Number of hours to get data for")
 	flag.Parse()
 
   if *logVerbose {
