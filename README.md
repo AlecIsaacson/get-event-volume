@@ -11,7 +11,7 @@ Then for each event type:
   
 The output is formatted *eventType, bytesCollected* with one event type per line
   
-We output to the command line, so you'll need to redirect to a file if you want to view this info in an editor or spreadsheet.
+We output to the console, so you'll need to redirect to a file if you want to view this info in an editor or spreadsheet.
 
 The utility takes the following command line arguments:
 
