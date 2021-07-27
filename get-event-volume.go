@@ -1,11 +1,12 @@
-//This app returns a list of all New Relic entities (name and GUID) that match a particular query.
-//It's useful as a feeder to another app that will do something to those entties.
+//This app returns a list of all New Relic events and the bytes consumed by them.
 package main
 
 import (
     "context"
     "fmt"
     "flag"
+    "os"
+    "bufio"
 
     "github.com/machinebox/graphql"
 )
@@ -72,14 +73,18 @@ func main() {
   // Define command line flags and defaults.
   nrAPI := flag.String("apikey", "", "New Relic GraphQL API Key")
   nrAccount := flag.Int("accountId", 0, "New Relic account ID")
-  // nrQuery := flag.String("nrql","name like '%'","A valid NRQL query")
+  nrEvents := flag.String("filter", "", "The file that contains events not to be processed")
 	logVerbose := flag.Bool("verbose", false, "Writes verbose logs for debugging")
+  timeframe := flag.String("timeframe", "1", "Number of hours to get data for")
 	flag.Parse()
 
   if *logVerbose {
     fmt.Println("Entity finder v1.0")
     fmt.Println("Verbose logging enabled")
   }
+  
+  //Get the New Relic stock events to be ignored.
+  nrStockEvents := getStockEvents(*nrEvents)
 
   //Spawn a new GraphQL client
   graphqlClient := graphql.NewClient("https://api.newrelic.com/graphql")
@@ -103,7 +108,7 @@ func main() {
   graphqlRequest.Var("account", *nrAccount)
   graphqlRequest.Header.Set("API-Key", *nrAPI)
 
-  // Get the list of event types.
+  // Get the list of event types found in this account.
   var graphqlEventResponse nrNRQLEventResultStruct
   if err := graphqlClient.Run(context.Background(), graphqlRequest, &graphqlEventResponse); err != nil {
       panic(err)
@@ -113,8 +118,8 @@ func main() {
 
   //Return the results and get each eventTypes volume.
   for _,result := range graphqlEventResponse.Actor.Account.Nrql.Results {
-    if (result.EventType != "Log" && result.EventType != "LogExtendedRecord") {
-      nrSizeQuery := "FROM `" + result.EventType + "` SELECT bytecountestimate()"
+    if _, found := nrStockEvents[result.EventType]; !found {
+      nrSizeQuery := "FROM `" + result.EventType + "` SELECT bytecountestimate() SINCE " + *timeframe + "hours ago" 
       graphqlRequest.Var("query", nrSizeQuery)
       graphqlRequest.Var("account", *nrAccount)
       graphqlRequest.Header.Set("API-Key", *nrAPI)
@@ -129,4 +134,19 @@ func main() {
       }
     }
   }  
+}
+
+func getStockEvents(filterFile string) (map[string]string) {
+  nrStockEvents := make(map[string]string)
+  eventFile, err := os.Open(filterFile)
+  if err != nil {
+    //log.Fatal(err)
+  }
+  defer eventFile.Close()
+  
+  scanner := bufio.NewScanner(eventFile)
+    for scanner.Scan() {
+      nrStockEvents[scanner.Text()] = scanner.Text()
+    }
+  return nrStockEvents
 }
