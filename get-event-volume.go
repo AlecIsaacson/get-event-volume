@@ -79,7 +79,7 @@ func main() {
 	flag.Parse()
 
   if *logVerbose {
-    fmt.Println("Entity finder v1.0")
+    fmt.Println("Get-Event-Volume v1.0")
     fmt.Println("Verbose logging enabled")
   }
   
